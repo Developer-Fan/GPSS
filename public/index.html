@@ -1,0 +1,321 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Generative Planetary System Simulator</title>
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "/three/build/three.module.js"
+        }
+      }
+    </script>
+    <style>
+      html,
+      body {
+        margin: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background:
+          radial-gradient(circle at top, rgba(35, 58, 109, 0.38), transparent 36%),
+          linear-gradient(180deg, #060913 0%, #0a1224 100%);
+        color: #eaf1ff;
+        font-family: Arial, Helvetica, sans-serif;
+      }
+
+      #app {
+        position: fixed;
+        inset: 0;
+      }
+
+      .hud {
+        position: absolute;
+        left: 16px;
+        top: 16px;
+        width: min(360px, calc(100vw - 32px));
+        padding: 16px;
+        border-radius: 16px;
+        background: rgba(8, 12, 24, 0.78);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(148, 163, 184, 0.18);
+        box-shadow: 0 16px 44px rgba(0, 0, 0, 0.28);
+      }
+
+      .hud-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 8px;
+      }
+
+      .hud h1 {
+        margin: 0;
+        font-size: 18px;
+      }
+
+      .hud-body p {
+        margin: 0 0 14px;
+        font-size: 13px;
+        line-height: 1.4;
+        opacity: 0.85;
+      }
+
+      .controls {
+        display: grid;
+        gap: 12px;
+      }
+
+      .row {
+        display: grid;
+        gap: 6px;
+      }
+
+      .row label {
+        font-size: 12px;
+        letter-spacing: 0.02em;
+        text-transform: uppercase;
+        color: rgba(226, 232, 240, 0.78);
+      }
+
+      .value {
+        float: right;
+        color: #8fd3ff;
+        font-variant-numeric: tabular-nums;
+      }
+
+      input[type='range'],
+      input[type='number'] {
+        width: 100%;
+        box-sizing: border-box;
+      }
+
+      input[type='number'] {
+        appearance: textfield;
+        border: 1px solid rgba(148, 163, 184, 0.22);
+        border-radius: 10px;
+        background: rgba(15, 23, 42, 0.8);
+        color: #eef4ff;
+        padding: 10px 12px;
+      }
+
+      .select-input {
+        width: 100%;
+        box-sizing: border-box;
+        appearance: none;
+        -webkit-appearance: none;
+        border: 1px solid rgba(148, 163, 184, 0.22);
+        border-radius: 10px;
+        background: rgba(15, 23, 42, 0.8);
+        color: #eef4ff;
+        padding: 10px 12px;
+        font: inherit;
+        cursor: pointer;
+        background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path fill='%238fd3ff' d='M0 0l5 6 5-6z'/></svg>");
+        background-repeat: no-repeat;
+        background-position: right 12px center;
+        padding-right: 32px;
+      }
+
+      .select-input:disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+      }
+
+      .checkbox-row {
+        margin-top: 2px;
+      }
+
+      .checkbox-label {
+        display: flex !important;
+        align-items: center;
+        gap: 10px;
+        cursor: pointer;
+        font-size: 13px !important;
+        text-transform: none !important;
+        letter-spacing: 0 !important;
+        color: rgba(226, 232, 240, 0.9) !important;
+      }
+
+      .checkbox-label input[type='checkbox'] {
+        width: 18px;
+        height: 18px;
+        margin: 0;
+        cursor: pointer;
+        accent-color: #8fd3ff;
+      }
+
+      .row.hidden {
+        display: none;
+      }
+
+      .buttons {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+
+      button {
+        appearance: none;
+        border: 1px solid rgba(148, 163, 184, 0.24);
+        border-radius: 12px;
+        background: linear-gradient(180deg, rgba(25, 39, 69, 0.96), rgba(15, 23, 42, 0.96));
+        color: #eef4ff;
+        padding: 10px 14px;
+        font: inherit;
+        cursor: pointer;
+      }
+
+      button:hover {
+        border-color: rgba(143, 211, 255, 0.5);
+      }
+
+      .toggle-button {
+        padding: 8px 10px;
+        font-size: 12px;
+        white-space: nowrap;
+      }
+
+      .hud.collapsed .hud-body {
+        display: none;
+      }
+
+      .hint {
+        margin-top: 12px;
+        font-size: 12px;
+        line-height: 1.45;
+        color: rgba(226, 232, 240, 0.72);
+      }
+
+      .popup {
+        position: fixed;
+        z-index: 10;
+        inset: 0;
+        display: block;
+        background: rgba(8, 12, 24, 0.9);
+        padding: 24px;
+        text-align: center;
+        color: #eaf1ff;
+        font-family: Arial, Helvetica, sans-serif;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+      }
+
+      .popup p {
+        text-align: left;
+      }
+
+      #enter {
+        display: block;
+        margin: 20px auto 0;
+      }
+
+      .hud {
+        overflow-y: auto;
+        max-height: 80vh;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="popup">
+      <h2>WASPS. vBeta.</h2>
+      <p>
+        World And System Proceduraliser Sim.<br />
+        - A project by yanfu
+        <br /><br />
+        building on three.js and simplex noise, motivated by the
+        recent renewed efforts in our endeavours to go beyond Earth,
+        this project is a small idea of mine to artificially create
+        an entire, discoverable planetary system in a web browser.
+        <br /><br />
+        the core functions are there, that being procedural generation
+        of a system with full customisation and an option to go in a spaceship
+        and explore. i dont think i will make it
+        a full game, because 1. theres already so many games out there and
+        2. skill issues. but i do hope there's enough detail here to
+        hopefully spark some imagination and steer some ppl towards space.
+        this is only a small snapshot, maybe not even a snapshot, of
+        space exploration.
+        <br />
+        i hope y'all love it, and have fun!
+
+        <button id="enter" type="button">Enter WASPS</button>
+      </p>
+    </div>
+    <div id="app"></div>
+    <div class="hud">
+      <div class="hud-header">
+        <h1>WASPS vBeta</h1>
+        <button id="toggleMenu" class="toggle-button" type="button" aria-expanded="true">Collapse</button>
+      </div>
+
+      <div class="hud-body">
+        <p>Adjust generation parameters</p>
+
+        <div class="controls">
+          <div class="row">
+            <label for="seed">Seed</label>
+            <input id="seed" type="number" min="1" step="1" value="42" />
+          </div>
+          <div class="row">
+            <label for="planetType">Planet Type</label>
+            <select id="planetType" class="select-input">
+              <option value="terrestrial" selected>Terrestrial</option>
+              <option value="gasGiant">Gas Giant</option>
+            </select>
+          </div>
+          <div class="row">
+            <label for="ringType">Ring System <span class="value" id="ringTypeLabel">None</span></label>
+            <select id="ringType" class="select-input" disabled>
+              <option value="none" selected>None</option>
+              <option value="rings">Has Rings</option>
+            </select>
+          </div>
+          <div class="row checkbox-row">
+            <label class="checkbox-label" for="includeMoon">
+              <input id="includeMoon" type="checkbox" checked />
+              Include Moon
+            </label>
+          </div>
+          <div class="row">
+            <label for="radius">Radius <span class="value" id="radiusValue">2.2</span></label>
+            <input id="radius" type="range" min="1.2" max="4" step="0.1" value="2.2" />
+          </div>
+          <div class="row">
+            <label for="detail">Detail <span class="value" id="detailValue">4</span></label>
+            <input id="detail" type="range" min="1" max="12" step="1" value="5" />
+          </div>
+          <div class="row terrain-only">
+            <label for="roughness">Roughness <span class="value" id="roughnessValue">0.34</span></label>
+            <input id="roughness" type="range" min="0" max="0.8" step="0.01" value="0.34" />
+          </div>
+          <div class="row terrain-only">
+            <label for="water">Water Level <span class="value" id="waterValue">0.50</span></label>
+            <input id="water" type="range" min="0.2" max="0.8" step="0.01" value="0.5" />
+          </div>
+          <div class="row">
+            <label for="asteroidCount">Asteroids <span class="value" id="asteroidCountValue">150</span></label>
+            <input id="asteroidCount" type="range" min="0" max="600" value="150" step="10" />
+          </div>
+
+          <div class="buttons">
+            <button id="generate">Generate Planet</button>
+            <button id="randomize" type="button">Randomize Seed</button>
+            <button id="spaceshipMode" type="button">Spaceship Mode</button>
+            <button id="toggleView" type="button" style="display:none;">First Person</button>
+          </div>
+        </div>
+
+        <div class="hint">
+          Drag to orbit, scroll to zoom.
+        </div>
+      </div>
+    </div>
+
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>
