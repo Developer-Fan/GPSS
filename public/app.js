@@ -1580,7 +1580,7 @@ function buildAsteroids(settings) {
             count: starCount,
             innerRadius: starProps.radius * 6.0 + 0.6,
             outerRadius: starProps.radius * 6.5 + 2.0,
-            inclinationSpread: 0.18,
+            inclinationSpread: 0.04,
             center: SUN_POS.clone()
         });
         scene.add(starBelt.group);
@@ -1604,14 +1604,14 @@ function buildAsteroids(settings) {
 
     // Another belt around the sun, but with a different seed → different distribution, for variety
 
-    let pos_sun_adj = SUN_POS.clone().add(new THREE.Vector3(0, -15, 0)); // slightly above the sun's center, to avoid z-fighting with star belt
+    let pos_sun_adj = SUN_POS.clone(); // centered on the sun at y=0
     if (planetCount > 0) {
         const planetBelt = createAsteroidBelt({
             seed: settings.seed * 47,
             count: planetCount,
             innerRadius: starProps.radius * 7.2 + 1.0,
             outerRadius: starProps.radius * 7.6 + 2.5,
-            inclinationSpread: 0.06,
+            inclinationSpread: 0.02,
             center: pos_sun_adj,
             sizeScale: 0.55
         });
@@ -1839,64 +1839,7 @@ window.addEventListener('resize', onResize);
 
 setMenuCollapsed(false);
 
-// --- ROTATION DIALOG ---
-let planetRotates = true;
 
-(function showRotationDialog() {
-    const overlay = document.createElement('div');
-    overlay.style.cssText = `
-        position:fixed; inset:0; z-index:9999;
-        background:rgba(4,10,24,0.82);
-        display:flex; align-items:center; justify-content:center;
-        font-family:inherit;
-    `;
-
-    const box = document.createElement('div');
-    box.style.cssText = `
-        background:#0d1a2e; border:1px solid #2a4a6a;
-        border-radius:12px; padding:36px 44px; max-width:340px;
-        text-align:center; color:#c8daf0;
-        box-shadow:0 8px 40px rgba(0,0,0,0.7);
-    `;
-
-    box.innerHTML = `
-        <div style="font-size:2rem;margin-bottom:12px;">🌀</div>
-        <h2 style="margin:0 0 10px;font-size:1.15rem;color:#e8f4ff;letter-spacing:.04em;">
-            Planetary Rotation
-        </h2>
-        <p style="margin:0 0 24px;font-size:.88rem;line-height:1.55;color:#7aaacf;">
-            Should the planet spin on its axis?<br>
-            <span style="font-size:.78rem;opacity:.7;">(Storms always animate regardless)</span>
-        </p>
-    `;
-
-    const btnRow = document.createElement('div');
-    btnRow.style.cssText = 'display:flex;gap:14px;justify-content:center;';
-
-    function makeBtn(label, value) {
-        const btn = document.createElement('button');
-        btn.textContent = label;
-        btn.style.cssText = `
-            padding:10px 28px; border-radius:8px; border:1px solid #2a4a6a;
-            background:${value ? '#1a3a5c' : '#1a1a2e'}; color:#c8daf0;
-            font-size:.95rem; cursor:pointer; transition:background .15s;
-        `;
-        btn.onmouseenter = () => btn.style.background = value ? '#2a5a8c' : '#2a2a4e';
-        btn.onmouseleave = () => btn.style.background = value ? '#1a3a5c' : '#1a1a2e';
-        btn.addEventListener('click', () => {
-            planetRotates = value;
-            overlay.remove();
-            buildPlanet();
-        });
-        return btn;
-    }
-
-    btnRow.appendChild(makeBtn('Yes', true));
-    btnRow.appendChild(makeBtn('No', false));
-    box.appendChild(btnRow);
-    overlay.appendChild(box);
-    document.body.appendChild(overlay);
-})();
 
 // --- ANIMATION LOOP ---
 function animate() {
@@ -1924,7 +1867,7 @@ function animate() {
         planetGroup.userData.atmosphereMaterial.uniforms.uTime.value = elapsed;
     }
 
-    if (planetRotates && !isSpaceshipMode) {
+    if (!isSpaceshipMode) {
         planetGroup.rotation.y += 0.003;
     }
 
