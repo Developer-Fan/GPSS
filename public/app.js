@@ -148,7 +148,7 @@ function generateStarProperties(seed) {
 let starProps = generateStarProperties(42);
 
 const starLight = new THREE.DirectionalLight(starProps.color, 2.0);
-starLight.position.set(80, 15, 0);
+starLight.position.set(80, 0, 0);
 scene.add(starLight);
 
 const starTarget = new THREE.Object3D();
@@ -299,7 +299,7 @@ function buildStar() {
     }
 
     starMesh = createStarMesh(starProps);
-    starMesh.position.set(80, 15, 0);
+    starMesh.position.set(80, 0, 0);
     starGroup.add(starMesh);
 }
 
@@ -368,7 +368,7 @@ spaceship.visible = false;
 scene.add(spaceship);
 
 // --- FRIGATE PATROL SYSTEM ---
-const SUN_POS = new THREE.Vector3(80, 15, 0);
+const SUN_POS = new THREE.Vector3(80, 0, 0);
 const frigates = [];
 const frigateLoader = new GLTFLoader();
 
@@ -748,7 +748,7 @@ function createPlanet({ seed, radius, detail, roughness, waterLevel }) {
             uTime: { value: 0 },
             uDeepColor: { value: new THREE.Color(0x7ab8d4) },
             uShallowColor: { value: new THREE.Color(0xc0e0f0) },
-            uSunDirection: { value: new THREE.Vector3(80, 15, 0).normalize() },
+            uSunDirection: { value: new THREE.Vector3(80, 0, 0).normalize() },
             uSunColor: { value: starProps.color.clone() },
             uSunIntensity: { value: 2.0 + (starProps.temp / 30000) },
             uAmbientColor: { value: new THREE.Color(0x446688) },
@@ -964,7 +964,7 @@ function createGasGiant({ seed, radius, detail, hasRings }) {
             uColor4: { value: colors[3] },
             uStormStrength: { value: stormStrength },
             uSeed: { value: seed },
-            uSunDirection: { value: new THREE.Vector3(80, 15, 0).normalize() },
+            uSunDirection: { value: new THREE.Vector3(80, 0, 0).normalize() },
             uRotate: { value: 1.0 }
         },
         vertexShader: `
@@ -1902,7 +1902,7 @@ let planetRotates = true;
 function animate() {
     const elapsed = clock.getElapsedTime();
 
-    const sunDir = new THREE.Vector3(80, 15, 0).normalize();
+    const sunDir = new THREE.Vector3(80, 0, 0).normalize();
 
     if (starMesh) {
         starMesh.rotation.y += 0.0005;
